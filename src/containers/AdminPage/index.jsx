@@ -5,7 +5,7 @@ import {
   clearDashboardAnalytics,
   fetchDashboardAnalytics,
 } from '../../data/actions/dashboardAnalytics';
-
+import searchEnrollmentsList from '../../data/actions/enrollmentsList'
 import Admin from '../../components/Admin';
 
 const mapStateToProps = state => ({
@@ -28,6 +28,9 @@ const mapDispatchToProps = dispatch => ({
   clearDashboardAnalytics: () => {
     dispatch(clearDashboardAnalytics());
   },
+  searchEnrollmentsList: (searchOptions) =>{
+    dispatch(searchEnrollmentsList(searchOptions))
+  }
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Admin));

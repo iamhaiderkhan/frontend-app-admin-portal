@@ -16,7 +16,9 @@ import EnrolledLearnersForInactiveCoursesTable from '../EnrolledLearnersForInact
 import CompletedLearnersTable from '../CompletedLearnersTable';
 import PastWeekPassedLearnersTable from '../PastWeekPassedLearnersTable';
 import LearnerActivityTable from '../LearnerActivityTable';
-
+import SearchBar from '../SearchBar';
+import { updateUrl } from '../../utils';
+import qs from 'query-string';
 import AdminCards from '../../containers/AdminCards';
 import DownloadCsvButton from '../../containers/DownloadCsvButton';
 import EnterpriseDataApiService from '../../data/services/EnterpriseDataApiService';
@@ -26,6 +28,15 @@ import { formatTimestamp } from '../../utils';
 import './Admin.scss';
 
 class Admin extends React.Component {
+  constructor(props) {
+    super(props)
+    const { location } = props;
+    const queryParams = qs.parse(location.search);
+    this.state = {
+      searchQuery: queryParams.search || '',
+      searchSubmitted: !!queryParams.search
+    }
+  }
   componentDidMount() {
     const { enterpriseId } = this.props;
     if (enterpriseId) {
@@ -34,10 +45,29 @@ class Admin extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { enterpriseId } = this.props;
+    const { enterpriseId, location } = this.props;
     if (enterpriseId && enterpriseId !== prevProps.enterpriseId) {
       this.props.fetchDashboardAnalytics(enterpriseId);
     }
+    if (location.search !== prevProps.location.search) {
+      const { search } = qs.parse(location.search);
+      const { search: prevSearch } = qs.parse(prevProps.location.search);
+      if (search !== prevSearch) {
+      
+        this.handleSearch(search);
+      }
+    }
+  }
+
+  handleSearch(query) {
+    this.setState({
+      searchQuery: query,
+      searchSubmitted: true,
+    });
+
+    this.props.searchEnrollmentsList({
+      search: query || undefined,
+    });
   }
 
   componentWillUnmount() {
@@ -225,6 +255,7 @@ class Admin extends React.Component {
       match,
     } = this.props;
 
+    const { searchQuery } = this.state;
     const { params: { actionSlug } } = match;
     const tableMetadata = this.getMetadataForAction(actionSlug);
     const csvErrorMessage = this.getCsvErrorMessage(tableMetadata.csvButtonId);
@@ -273,12 +304,27 @@ class Admin extends React.Component {
                           }
                         </div>
                         <div className="col-12 col-md-6 text-md-right">
-                          <DownloadCsvButton
-                            id={tableMetadata.csvButtonId}
-                            fetchMethod={tableMetadata.csvFetchMethod}
-                            disabled={this.shouldDisableCsvButton(actionSlug)}
-                            buttonLabel={`Download ${actionSlug ? 'current' : 'full'} report (CSV)`}
-                          />
+                        <div className="row">
+                          <div className="col-sm-12 col-md-8">
+                            <SearchBar
+                              inputLabel="Search by email:"
+                              onSearch={query => updateUrl({
+                                search: query,
+                                page: 1,
+                              })}
+                              onClear={() => updateUrl({ search: undefined })}
+                              value={searchQuery}
+                            />
+                          </div>
+                          <div className="col-sm-12 col-md-4">
+                            <DownloadCsvButton
+                              id={tableMetadata.csvButtonId}
+                              fetchMethod={tableMetadata.csvFetchMethod}
+                              disabled={this.shouldDisableCsvButton(actionSlug)}
+                              buttonLabel={`Download ${actionSlug ? 'current' : 'full'} report (CSV)`}
+                            />
+                          </div>
+                        </div>
                         </div>
                       </div>
                     )}
@@ -322,6 +368,7 @@ Admin.defaultProps = {
 Admin.propTypes = {
   fetchDashboardAnalytics: PropTypes.func.isRequired,
   clearDashboardAnalytics: PropTypes.func.isRequired,
+  searchEnrollmentsList: PropTypes.func.isRequired,
   enterpriseId: PropTypes.string,
   activeLearners: PropTypes.shape({
     past_week: PropTypes.number,
