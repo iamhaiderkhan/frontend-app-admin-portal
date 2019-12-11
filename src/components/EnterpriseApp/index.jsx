@@ -119,7 +119,7 @@ class EnterpriseApp extends React.Component {
                   <Route
                     exact
                     path={`${baseUrl}/admin/learners/:actionSlug?`}
-                    render={routeProps => <AdminPage {...routeProps} />}
+                    render={routeProps => <AdminPage {...routeProps} enterpriseSlug={baseUrl} />}
                   />
                   {features.CODE_MANAGEMENT && enableCodeManagementScreen && [
                     <Route
