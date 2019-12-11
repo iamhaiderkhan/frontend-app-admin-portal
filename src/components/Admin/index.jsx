@@ -42,6 +42,9 @@ class Admin extends React.Component {
     if (enterpriseId) {
       this.props.fetchDashboardAnalytics(enterpriseId);
     }
+    if (location.pathname != `${this.props.enterpriseSlug}/admin/learners`){
+      this.isSearchShow = false
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -53,10 +56,11 @@ class Admin extends React.Component {
       const { search } = qs.parse(location.search);
       const { search: prevSearch } = qs.parse(prevProps.location.search);
       if (search !== prevSearch) {
-      
         this.handleSearch(search);
       }
     }
+
+    this.isSearchShow = `${this.props.enterpriseSlug}/admin/learners` == prevProps.match.url ? true : false
   }
 
   handleSearch(query) {
@@ -305,7 +309,7 @@ class Admin extends React.Component {
                         </div>
                         <div className="col-12 col-md-6 text-md-right">
                         <div className="row">
-                          <div className="col-sm-12 col-md-8">
+                          <div className="col-sm-12 col-md-7 pr-0">
                             <SearchBar
                               inputLabel="Search by email:"
                               onSearch={query => updateUrl({
@@ -316,7 +320,7 @@ class Admin extends React.Component {
                               value={searchQuery}
                             />
                           </div>
-                          <div className="col-sm-12 col-md-4">
+                          <div className="col-sm-12 col-md-5 pl-0">
                             <DownloadCsvButton
                               id={tableMetadata.csvButtonId}
                               fetchMethod={tableMetadata.csvFetchMethod}
